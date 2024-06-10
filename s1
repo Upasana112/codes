@@ -1,0 +1,67 @@
+global class GetActivationSummary {
+    @InvocableMethod(label='Get Activation Summary')
+    public static List<ActivationSummary> getActivationSummary(List<Input> input) {
+        String subject = input[0].subject;
+
+        // Query to get relevant data from activation_results_v2_dlm and activation_results_chunk_v2_dlm
+        String query = 'SELECT DataSource__c, DataSourceObject__c, InternalOrganization__c, KQ_RecordId__c, KQ_SourceRecordId__c, RecordId__c, SourceRecordId__c ' +
+                       'FROM activation_results_v2_dlm ' +
+                       'WHERE KQ_RecordId__c = :subject AND DataSourceObject__c = \'Successful Activation\' ' +
+                       'ORDER BY RecordId__c DESC ' +
+                       'LIMIT 10';
+
+        List<activation_results_v2_dlm__c> results = Database.query(query);
+
+        List<ActivationSummary> outputList = new List<ActivationSummary>();
+
+        for (activation_results_v2_dlm__c record : results) {
+            ActivationSummary summary = new ActivationSummary();
+            summary.dataSource = record.DataSource__c;
+            summary.dataSourceObject = record.DataSourceObject__c;
+            summary.internalOrganization = record.InternalOrganization__c;
+            summary.kqRecordId = record.KQ_RecordId__c;
+            summary.kqSourceRecordId = record.KQ_SourceRecordId__c;
+            summary.recordId = record.RecordId__c;
+            summary.sourceRecordId = record.SourceRecordId__c;
+            summary.successfulActivationNumber = record.RecordId__c; // Assuming this is the successful activation number
+            summary.testId = record.SourceRecordId__c; // Assuming this is the test ID
+            outputList.add(summary);
+        }
+
+        return outputList;
+    }
+
+    global class Input {
+        @InvocableVariable(label='Subject' description='Case Subject' required=true)
+        public String subject;
+    }
+
+    global class ActivationSummary {
+        @InvocableVariable(label='Data Source' description='Data Source of the activation result' required=true)
+        public String dataSource;
+
+        @InvocableVariable(label='Data Source Object' description='Data Source Object of the activation result' required=true)
+        public String dataSourceObject;
+
+        @InvocableVariable(label='Internal Organization' description='Internal Organization of the activation result' required=true)
+        public String internalOrganization;
+
+        @InvocableVariable(label='KQ Record Id' description='KQ Record Id of the activation result' required=true)
+        public String kqRecordId;
+
+        @InvocableVariable(label='KQ Source Record Id' description='KQ Source Record Id of the activation result' required=true)
+        public String kqSourceRecordId;
+
+        @InvocableVariable(label='Record Id' description='Record Id of the activation result' required=true)
+        public String recordId;
+
+        @InvocableVariable(label='Source Record Id' description='Source Record Id of the activation result' required=true)
+        public String sourceRecordId;
+
+        @InvocableVariable(label='Successful Activation Number' description='Successful Activation Number' required=true)
+        public String successfulActivationNumber;
+
+        @InvocableVariable(label='Test ID' description='Test ID' required=true)
+        public String testId;
+    }
+}
